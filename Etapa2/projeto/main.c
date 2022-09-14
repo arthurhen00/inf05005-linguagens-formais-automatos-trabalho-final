@@ -8,28 +8,32 @@
 
 typedef struct tipoNo ptLSE;
 struct tipoNo{
-    char simbolo;
-    char estado[3];
+    char simbolo[8];
+    char estado[8];
     ptLSE *prox;
 };
 
 void lerAutomato(char name[], char estados[][32], char alfabeto[][32], char estadoInicial[], char estadoFinal[][16], ptLSE *map[]);
+void processarListaPalavras(char fileName[STRING_SIZE], ptLSE *map[]);
 
-ptLSE *inserirFim(ptLSE *ptLista, char simbolo, char estado[]);
+ptLSE *criaLista();
+ptLSE *inserirFim(ptLSE *ptLista, char simbolo[], char estado[]);
+void inicializarLista(ptLSE *hash_map[], int M);
+int gerarHash(char estado[]);
 
 int main(){
 
     char automato_nome[STRING_SIZE];
-    char estados[3][32];
-    char alfabeto[1][32];
-    char estadoInicial[3];
-    char estadoFinal[3][16];
+    char estados[8][32];
+    char alfabeto[8][32];
+    char estadoInicial[8];
+    char estadoFinal[8][16];
 
     ptLSE *hash_map[101];
+    inicializarLista(hash_map, 101);
     lerAutomato(automato_nome, estados, alfabeto, estadoInicial, estadoFinal, hash_map);
-
-
-
+    
+    processarListaPalavras("entrada.txt", hash_map);
 
     return 0;
 }
@@ -40,7 +44,7 @@ void lerAutomato(char name[], char estados[][32], char alfabeto[][32], char esta
 
     FILE *arq = fopen("../automatos/AFD.txt", "r");
         if(!arq){
-            printf("Erro ao abrir arquivo --- (caminho nao encontrado)");
+            printf("Erro ao abrir arquivo do automato --- (caminho nao encontrado)");
             fclose(arq);
             return;
         }
@@ -86,25 +90,24 @@ void lerAutomato(char name[], char estados[][32], char alfabeto[][32], char esta
         }
 
         for(int i = 0; !feof(arq); i++){
-            char buffer_estado_fonte[3];
-            char buffet_simbolo;
-            char buffer_estado_destino[3];
+            char buffer_estado_fonte[8];
+            char buffer_simbolo[8];
+            char buffer_estado_destino[8];
 
-            buffer[strlen(buffer)-1] = '\0';
-            printf("%s\n", buffer);
+            buffer[strlen(buffer)-2] = '\0';
+
             token = strtok(buffer, "(");
-            printf("%s\n", token);
             token = strtok(token, ",");
-            printf("%s\n", token);
-            token = strtok(NULL, ",");
-            printf("%s\n", token);
-            token = strtok(NULL, ",");
-            token[strlen(token)-1] = '\0';
-            printf("%s\n", token);
+            strcpy(buffer_estado_fonte, token);
 
-            /*
-            Inserir no map
-            */
+            token = strtok(NULL, ",");
+            strcpy(buffer_simbolo, token);
+
+            token = strtok(NULL, ",");
+            strcpy(buffer_estado_destino, token);
+
+            int hash = gerarHash(buffer_estado_fonte);
+            map[hash] = inserirFim(map[hash], buffer_simbolo, buffer_estado_destino);
 
             fgets(buffer, STRING_SIZE, arq);
         }
@@ -112,7 +115,20 @@ void lerAutomato(char name[], char estados[][32], char alfabeto[][32], char esta
     fclose(arq);
 }
 
+void processarListaPalavras(char fileName[STRING_SIZE], ptLSE *map[]){
 
+    FILE *arq = fopen(fileName, "r");
+        if(!arq){
+            printf("Erro ao abrir arquivo de entrada --- (caminho nao encontrado)");
+            fclose(arq);
+            return;
+        }
+
+
+
+    fclose(arq);
+
+}
 
 // LISTA -----------------------------------------------------------------------------------------------------------------------------------
 // Cria lista
@@ -121,11 +137,11 @@ ptLSE *criaLista(){
 }
 
 // Insere na lista
-ptLSE *inserirFim(ptLSE *ptLista, char simbolo, char estado[]){
+ptLSE *inserirFim(ptLSE *ptLista, char simbolo[], char estado[]){
     ptLSE *novo, *ptAux;
 
     novo = (ptLSE*)malloc(sizeof(ptLSE));
-    novo->simbolo = simbolo;
+    strcpy(novo->simbolo, simbolo);
     strcpy(novo->estado, estado);
 
     if(ptLista == NULL){
@@ -139,4 +155,19 @@ ptLSE *inserirFim(ptLSE *ptLista, char simbolo, char estado[]){
         novo->prox = NULL;
     }
     return ptLista;
+}
+
+// Inicializa listas vazias no map
+void inicializarLista(ptLSE *hash_map[], int M){
+    for(int i = 0; i < M; i++){
+        ptLSE *ptLista = criaLista();
+        hash_map[i] = ptLista; 
+    }
+}
+
+int gerarHash(char estado[]){
+    for(int i = 0; i < 6; i++){
+        estado[i] = estado[i+1];
+    }
+    return atoi(estado);
 }
