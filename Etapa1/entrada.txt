@@ -1,0 +1,13 @@
+Aceita: 
+bddddcc
+cddbbddcc
+bddcceebbddddcc
+bddddccbbeecceebbddddcc
+cddeebbddddcc
+
+Rejeita:
+vazio
+bddddc
+bddddccb
+ddbddcc
+bddccdbbddcc
