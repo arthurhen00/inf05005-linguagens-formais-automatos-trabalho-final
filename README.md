@@ -7,14 +7,11 @@ Sistema que retorna as possíveis rotas em um mapa.
 
 ## Mapa:
 XXXXXFX
+
 X   X X
+
 I X X X
+
 X     X
+
 XXXXXXX
-
-
-
-das
-1
-2
-3
