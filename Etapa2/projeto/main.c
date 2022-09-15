@@ -4,7 +4,7 @@
 
 #define FILE_NAME_SIZE 64
 #define STRING_SIZE 256
-#define SIMBOLO_VAZIO $
+#define SIMBOLO_VAZIO '$'
 
 typedef struct tipoNo ptLSE;
 struct tipoNo{
@@ -138,12 +138,15 @@ void processarListaPalavras(char fileName[STRING_SIZE], ptLSE *map[], char estad
                 int hash = gerarHash(buffer_estado);
                 procurarMap(hash, map, buffer_fita[i], buffer_estado);
 
-                // verificar se é um estado final
-
             }
 
+            // MUDA PRA QUANDO TIVER MAIS DE 1 ESTADO FINAL
+            
+            // Verifica se parou em um estado final
             for(int i = 0; i < 1; i++){
-                if(strcmp(buffer_estado, estadoFinal[i]) == 0){
+                if(strcmp(buffer_estado, "-1") == 0 && strcmp(estadoInicial, estadoFinal[i]) == 0){
+                    aceita = 1;
+                }else if(strcmp(buffer_estado, estadoFinal[i]) == 0){
                     aceita = 1;
                 }
             }
@@ -212,6 +215,12 @@ void procurarMap(int hash, ptLSE *map[], char simbolo, char novoEstado[]){
             strcpy(novoEstado, ptAux->estado);
             return;
         }
+    }
+
+    //excecao p/ palavra vazia
+    if(simbolo == SIMBOLO_VAZIO){
+        strcpy(novoEstado, "-1");
+        return;
     }
 
     // nao achou o simbolo
