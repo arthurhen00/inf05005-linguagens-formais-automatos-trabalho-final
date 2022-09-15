@@ -14,7 +14,8 @@ struct tipoNo{
 };
 
 void lerAutomato(char name[], char estados[][32], char alfabeto[][32], char estadoInicial[], char estadoFinal[][16], ptLSE *map[]);
-void processarListaPalavras(char fileName[STRING_SIZE], ptLSE *map[]);
+void processarListaPalavras(char fileName[STRING_SIZE], ptLSE *map[], char estadoInicial[], char estadoFinal[][16]);
+void procurarMap(int hash, ptLSE *map[], char simbolo, char novoEstado[]);
 
 ptLSE *criaLista();
 ptLSE *inserirFim(ptLSE *ptLista, char simbolo[], char estado[]);
@@ -33,7 +34,7 @@ int main(){
     inicializarLista(hash_map, 101);
     lerAutomato(automato_nome, estados, alfabeto, estadoInicial, estadoFinal, hash_map);
     
-    processarListaPalavras("entrada.txt", hash_map);
+    processarListaPalavras("entrada.txt", hash_map, estadoInicial, estadoFinal);
 
     return 0;
 }
@@ -115,7 +116,7 @@ void lerAutomato(char name[], char estados[][32], char alfabeto[][32], char esta
     fclose(arq);
 }
 
-void processarListaPalavras(char fileName[STRING_SIZE], ptLSE *map[]){
+void processarListaPalavras(char fileName[STRING_SIZE], ptLSE *map[], char estadoInicial[], char estadoFinal[][16]){
 
     FILE *arq = fopen(fileName, "r");
         if(!arq){
@@ -124,7 +125,37 @@ void processarListaPalavras(char fileName[STRING_SIZE], ptLSE *map[]){
             return;
         }
 
+        char buffer_fita[STRING_SIZE];    
+        while(!feof(arq)){
+            int aceita = 0;
+            char buffer_estado[8];
 
+            fscanf(arq, "%s", buffer_fita);
+            strcpy(buffer_estado, estadoInicial);
+
+            for(int i = 0; buffer_fita[i] != '\0'; i++){
+
+                int hash = gerarHash(buffer_estado);
+                procurarMap(hash, map, buffer_fita[i], buffer_estado);
+
+                // verificar se é um estado final
+
+            }
+
+            for(int i = 0; i < 1; i++){
+                if(strcmp(buffer_estado, estadoFinal[i]) == 0){
+                    aceita = 1;
+                }
+            }
+
+            if(aceita == 1){
+                printf("%32s | ACEITA\n", buffer_fita);
+            } else {
+                printf("%32s | REJEITA\n", buffer_fita);
+            }
+            
+        }
+        
 
     fclose(arq);
 
@@ -170,4 +201,19 @@ int gerarHash(char estado[]){
         estado[i] = estado[i+1];
     }
     return atoi(estado);
+}
+
+void procurarMap(int hash, ptLSE *map[], char simbolo, char novoEstado[]){
+    
+    ptLSE *ptAux;
+
+    for(ptAux = map[hash]; ptAux != NULL; ptAux = ptAux->prox){
+        if(ptAux->simbolo[0] == simbolo){
+            strcpy(novoEstado, ptAux->estado);
+            return;
+        }
+    }
+
+    // nao achou o simbolo
+    strcpy(novoEstado, "-99");
 }
