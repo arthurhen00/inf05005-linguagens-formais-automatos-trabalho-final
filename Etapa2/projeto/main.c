@@ -13,9 +13,10 @@ struct tipoNo{
     ptLSE *prox;
 };
 
-void lerAutomato(char name[], char estados[][32], char alfabeto[][32], char estadoInicial[], char estadoFinal[][16], ptLSE *map[]);
-void processarListaPalavras(char fileName[STRING_SIZE], ptLSE *map[], char estadoInicial[], char estadoFinal[][16]);
+void lerAutomato(char name[], char estados[][8], char alfabeto[][8], char estadoInicial[], char estadoFinal[][8], ptLSE *map[],int *qntEstados, int *qntSimbolos);
+void processarListaPalavras(char fileName[STRING_SIZE], ptLSE *map[], char estadoInicial[], char estadoFinal[][8]);
 void procurarMap(int hash, ptLSE *map[], char simbolo, char novoEstado[]);
+void remocaoEstadosInalcancaveis(ptLSE *map[],char estados[][8],char estadoInicial[]);
 
 ptLSE *criaLista();
 ptLSE *inserirFim(ptLSE *ptLista, char simbolo[], char estado[]);
@@ -25,21 +26,21 @@ int gerarHash(char estado[]);
 int main(){
 
     char automato_nome[STRING_SIZE];
-    char estados[8][32];
-    char alfabeto[8][32];
+    char estados[32][8];
+    char alfabeto[32][8];
     char estadoInicial[8];
-    char estadoFinal[8][16];
+    char estadoFinal[16][8];
+    int qntEstados = 0,qntSimbolos = 0;
 
     ptLSE *hash_map[101];
     inicializarLista(hash_map, 101);
-    lerAutomato(automato_nome, estados, alfabeto, estadoInicial, estadoFinal, hash_map);
-    
-    processarListaPalavras("entrada.txt", hash_map, estadoInicial, estadoFinal);
+    lerAutomato(automato_nome, estados, alfabeto, estadoInicial, estadoFinal, hash_map,&qntEstados,&qntSimbolos);
 
+    processarListaPalavras("entrada.txt", hash_map, estadoInicial, estadoFinal);
     return 0;
 }
 
-void lerAutomato(char name[], char estados[][32], char alfabeto[][32], char estadoInicial[], char estadoFinal[][16], ptLSE *map[]){
+void lerAutomato(char name[], char estados[][8], char alfabeto[][8], char estadoInicial[], char estadoFinal[][8], ptLSE *map[],int *qntEstados, int *qntSimbolos){
     char buffer[STRING_SIZE];
     char *token;
 
@@ -60,6 +61,7 @@ void lerAutomato(char name[], char estados[][32], char alfabeto[][32], char esta
         for(int i = 0; token != NULL; i++){
             strcpy(estados[i],token);
             token = strtok(NULL, ",");
+            *qntEstados++;
         }
 
         fgets(buffer, STRING_SIZE, arq);
@@ -69,6 +71,7 @@ void lerAutomato(char name[], char estados[][32], char alfabeto[][32], char esta
         for(int i = 0; token != NULL; i++){
             strcpy(alfabeto[i], token);
             token = strtok(NULL, ",");
+            *qntSimbolos++;
         }
 
         fgets(buffer, STRING_SIZE, arq);
@@ -116,7 +119,7 @@ void lerAutomato(char name[], char estados[][32], char alfabeto[][32], char esta
     fclose(arq);
 }
 
-void processarListaPalavras(char fileName[STRING_SIZE], ptLSE *map[], char estadoInicial[], char estadoFinal[][16]){
+void processarListaPalavras(char fileName[STRING_SIZE], ptLSE *map[], char estadoInicial[], char estadoFinal[][8]){
 
     FILE *arq = fopen(fileName, "r");
         if(!arq){
@@ -125,7 +128,7 @@ void processarListaPalavras(char fileName[STRING_SIZE], ptLSE *map[], char estad
             return;
         }
 
-        char buffer_fita[STRING_SIZE];    
+        char buffer_fita[STRING_SIZE];
         while(!feof(arq)){
             int aceita = 0;
             char buffer_estado[8];
@@ -141,7 +144,7 @@ void processarListaPalavras(char fileName[STRING_SIZE], ptLSE *map[], char estad
             }
 
             // MUDA PRA QUANDO TIVER MAIS DE 1 ESTADO FINAL
-            
+
             // Verifica se parou em um estado final
             for(int i = 0; i < 1; i++){
                 if(strcmp(buffer_estado, "-1") == 0 && strcmp(estadoInicial, estadoFinal[i]) == 0){
@@ -156,9 +159,9 @@ void processarListaPalavras(char fileName[STRING_SIZE], ptLSE *map[], char estad
             } else {
                 printf("%32s | REJEITA\n", buffer_fita);
             }
-            
+
         }
-        
+
 
     fclose(arq);
 
@@ -195,7 +198,7 @@ ptLSE *inserirFim(ptLSE *ptLista, char simbolo[], char estado[]){
 void inicializarLista(ptLSE *hash_map[], int M){
     for(int i = 0; i < M; i++){
         ptLSE *ptLista = criaLista();
-        hash_map[i] = ptLista; 
+        hash_map[i] = ptLista;
     }
 }
 
@@ -207,7 +210,7 @@ int gerarHash(char estado[]){
 }
 
 void procurarMap(int hash, ptLSE *map[], char simbolo, char novoEstado[]){
-    
+
     ptLSE *ptAux;
 
     for(ptAux = map[hash]; ptAux != NULL; ptAux = ptAux->prox){
@@ -225,4 +228,11 @@ void procurarMap(int hash, ptLSE *map[], char simbolo, char novoEstado[]){
 
     // nao achou o simbolo
     strcpy(novoEstado, "-99");
+}
+
+
+void remocaoEstadosInalcancaveis(ptLSE *map[],char estados[][8],char estadoInicial[]){
+   ptLSE *ptAux = map[gerarHash(estadoInicial)];
+
+   //ptAux->
 }
