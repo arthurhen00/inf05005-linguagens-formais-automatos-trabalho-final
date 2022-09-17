@@ -13,10 +13,15 @@ struct tipoNo{
     ptLSE *prox;
 };
 
+
 void lerAutomato(char name[], char estados[][8], char alfabeto[][8], char estadoInicial[], char estadoFinal[][8], ptLSE *map[],int *qntEstados, int *qntSimbolos);
 void processarListaPalavras(char fileName[STRING_SIZE], ptLSE *map[], char estadoInicial[], char estadoFinal[][8]);
 void procurarMap(int hash, ptLSE *map[], char simbolo, char novoEstado[]);
+int estaNaLista(ptLSE *lista,char estado[]);
+
 void remocaoEstadosInalcancaveis(ptLSE *map[],char estados[][8],char estadoInicial[]);
+void achaEstadosAlcancaveis(ptLSE *estado,ptLSE *listaAlcancavel,ptLSE *map[]);
+
 
 ptLSE *criaLista();
 ptLSE *inserirFim(ptLSE *ptLista, char simbolo[], char estado[]);
@@ -35,8 +40,14 @@ int main(){
     ptLSE *hash_map[101];
     inicializarLista(hash_map, 101);
     lerAutomato(automato_nome, estados, alfabeto, estadoInicial, estadoFinal, hash_map,&qntEstados,&qntSimbolos);
+    printf("%s\n\n\n",estadoInicial);
 
     processarListaPalavras("entrada.txt", hash_map, estadoInicial, estadoFinal);
+
+    printf("%s\n\n\n",estadoInicial);
+
+    remocaoEstadosInalcancaveis(hash_map,estados,estadoInicial);
+
     return 0;
 }
 
@@ -44,7 +55,7 @@ void lerAutomato(char name[], char estados[][8], char alfabeto[][8], char estado
     char buffer[STRING_SIZE];
     char *token;
 
-    FILE *arq = fopen("../automatos/AFD.txt", "r");
+    FILE *arq = fopen("../automatos/AFD _com_estado_inalcancavel.txt", "r");
         if(!arq){
             printf("Erro ao abrir arquivo do automato --- (caminho nao encontrado)");
             fclose(arq);
@@ -194,6 +205,21 @@ ptLSE *inserirFim(ptLSE *ptLista, char simbolo[], char estado[]){
     return ptLista;
 }
 
+int estaNaLista(ptLSE *lista,char estado[]){
+    ptLSE *ptAux;
+
+    if(lista == NULL){
+        return 0;
+    }else{
+        if(strcmp(estado,lista->estado) == 0){
+            return 1;
+        }else{
+            return estaNaLista(lista->prox,estado);
+        }
+    }
+
+}
+
 // Inicializa listas vazias no map
 void inicializarLista(ptLSE *hash_map[], int M){
     for(int i = 0; i < M; i++){
@@ -231,8 +257,44 @@ void procurarMap(int hash, ptLSE *map[], char simbolo, char novoEstado[]){
 }
 
 
-void remocaoEstadosInalcancaveis(ptLSE *map[],char estados[][8],char estadoInicial[]){
-   ptLSE *ptAux = map[gerarHash(estadoInicial)];
+//DEBUG
+void imprime(ptLSE* l)
+{
+     ptLSE* ptaux;
+     if (l == NULL)
+        puts("lista vazia");
+     else
+     for (ptaux=l; ptaux!=NULL; ptaux=ptaux->prox)
+         printf("Estado(lista) = %s\n",ptaux->estado);
+}
 
-   //ptAux->
+
+void remocaoEstadosInalcancaveis(ptLSE *map[],char estados[][8],char* estadoInicial){
+    ptLSE *listaAlcancavel;
+    listaAlcancavel = criaLista(listaAlcancavel);
+
+    listaAlcancavel = inserirFim(listaAlcancavel,"aa",estadoInicial);
+    imprime(listaAlcancavel);
+    printf("--------------\n");
+    achaEstadosAlcancaveis(map[gerarHash(estadoInicial)],listaAlcancavel,map);
+
+    imprime(listaAlcancavel);
+
+}
+
+void achaEstadosAlcancaveis(ptLSE *estado,ptLSE *listaAlcancavel,ptLSE *map[]){
+    if(estado != NULL){
+        if(!estaNaLista(listaAlcancavel,estado->estado)){
+            printf("Estado %s\n",estado->estado);
+            listaAlcancavel = inserirFim(listaAlcancavel,estado->simbolo,estado->estado);
+            achaEstadosAlcancaveis(estado->prox,listaAlcancavel,map);
+            if(estado->prox != NULL){
+                int hash = gerarHash(estado->prox->estado);
+                printf("hash: %d\n",hash);
+                achaEstadosAlcancaveis(map[hash],listaAlcancavel,map);
+            }
+
+        }
+        achaEstadosAlcancaveis(estado->prox,listaAlcancavel,map);
+    }
 }
