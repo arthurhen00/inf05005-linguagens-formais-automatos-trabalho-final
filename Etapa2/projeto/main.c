@@ -5,6 +5,8 @@
 #define FILE_NAME_SIZE 64
 #define STRING_SIZE 256
 #define SIMBOLO_VAZIO '$'
+#define NUM_MAX_ESTADOS 32
+#define NUM_MAX_ESTADOS_FINAIS 16
 
 typedef struct tipoNo ptLSE;
 struct tipoNo{
@@ -14,13 +16,15 @@ struct tipoNo{
 };
 
 
-void lerAutomato(char name[], char estados[][8], char alfabeto[][8], char estadoInicial[], char estadoFinal[][8], ptLSE *map[],int *qntEstados, int *qntSimbolos);
+void lerAutomato(char name[], char estados[][8], char alfabeto[][8], char estadoInicial[], char estadoFinal[][8], ptLSE *map[],int *qntEstados, int *qntSimbolos, int *qntEstadosFinais);
 void processarListaPalavras(char fileName[STRING_SIZE], ptLSE *map[], char estadoInicial[], char estadoFinal[][8]);
 void procurarMap(int hash, ptLSE *map[], char simbolo, char novoEstado[]);
 int estaNaLista(ptLSE *lista,char estado[]);
-
-void remocaoEstadosInalcancaveis(ptLSE *map[],char estados[][8],char estadoInicial[]);
+ptLSE* remover(ptLSE* l, char estado[], int *terminou);
+ptLSE* destroi(ptLSE* l);
+void remocaoEstadosInalcancaveis(ptLSE *map[],char estados[][8], char estadoFinal[][8],char* estadoInicial,int *qntEstados, int *qntEstadosFinais);
 void achaEstadosAlcancaveis(ptLSE *estado,ptLSE *listaAlcancavel,ptLSE *map[]);
+void atualizaLista(char estados[][8],char estadoFinal[][8], int *qntEstados,int *qntEstadosFinais ,ptLSE *listaAlcancaveis, ptLSE *map[]);
 
 
 ptLSE *criaLista();
@@ -28,30 +32,31 @@ ptLSE *inserirFim(ptLSE *ptLista, char simbolo[], char estado[]);
 void inicializarLista(ptLSE *hash_map[], int M);
 int gerarHash(char estado[]);
 
+//DEBUG
+void imprime(ptLSE* l);
+
 int main(){
 
     char automato_nome[STRING_SIZE];
-    char estados[32][8];
-    char alfabeto[32][8];
+    char estados[NUM_MAX_ESTADOS][8];
+    char alfabeto[NUM_MAX_ESTADOS][8];
     char estadoInicial[8];
-    char estadoFinal[16][8];
-    int qntEstados = 0,qntSimbolos = 0;
+    char estadoFinal[NUM_MAX_ESTADOS_FINAIS][8];
+    int qntEstados = 0,qntSimbolos = 0, qntEstadosFinais = 0;
 
     ptLSE *hash_map[101];
     inicializarLista(hash_map, 101);
-    lerAutomato(automato_nome, estados, alfabeto, estadoInicial, estadoFinal, hash_map,&qntEstados,&qntSimbolos);
+    lerAutomato(automato_nome, estados, alfabeto, estadoInicial, estadoFinal, hash_map,&qntEstados,&qntSimbolos,&qntEstadosFinais);
     printf("%s\n\n\n",estadoInicial);
 
     processarListaPalavras("entrada.txt", hash_map, estadoInicial, estadoFinal);
 
-    printf("%s\n\n\n",estadoInicial);
-
-    remocaoEstadosInalcancaveis(hash_map,estados,estadoInicial);
+    remocaoEstadosInalcancaveis(hash_map,estados,estadoFinal,estadoInicial,&qntEstados,&qntEstadosFinais);
 
     return 0;
 }
 
-void lerAutomato(char name[], char estados[][8], char alfabeto[][8], char estadoInicial[], char estadoFinal[][8], ptLSE *map[],int *qntEstados, int *qntSimbolos){
+void lerAutomato(char name[], char estados[][8], char alfabeto[][8], char estadoInicial[], char estadoFinal[][8], ptLSE *map[],int *qntEstados, int *qntSimbolos, int *qntEstadosFinais){
     char buffer[STRING_SIZE];
     char *token;
 
@@ -72,7 +77,7 @@ void lerAutomato(char name[], char estados[][8], char alfabeto[][8], char estado
         for(int i = 0; token != NULL; i++){
             strcpy(estados[i],token);
             token = strtok(NULL, ",");
-            *qntEstados++;
+            (*qntEstados)++;
         }
 
         fgets(buffer, STRING_SIZE, arq);
@@ -82,7 +87,7 @@ void lerAutomato(char name[], char estados[][8], char alfabeto[][8], char estado
         for(int i = 0; token != NULL; i++){
             strcpy(alfabeto[i], token);
             token = strtok(NULL, ",");
-            *qntSimbolos++;
+            (*qntSimbolos)++;
         }
 
         fgets(buffer, STRING_SIZE, arq);
@@ -98,6 +103,7 @@ void lerAutomato(char name[], char estados[][8], char alfabeto[][8], char estado
         for(int i = 0; token != NULL; i++){
             strcpy(estadoFinal[i], token);
             token = strtok(NULL, ",");
+            (*qntEstadosFinais)++;
         }
 
         while(!strcmp(fgets(buffer, STRING_SIZE, arq), "\n")){
@@ -220,6 +226,50 @@ int estaNaLista(ptLSE *lista,char estado[]){
 
 }
 
+//remove da lista os nodos com o estado passado
+ptLSE* remover(ptLSE* l, char estado[], int *terminou)
+{
+     ptLSE *ant = NULL; //ponteiro auxiliar para a posição anterior
+     ptLSE *ptaux = l; //ponteiro auxiliar para percorrer a lista
+
+     /*procura o elemento na lista*/
+     while (ptaux !=NULL && (strcmp(ptaux->estado, estado)))
+     {
+          ant = ptaux;
+          ptaux = ptaux->prox;
+     }
+
+     /*verifica se achou*/
+     if (ptaux == NULL){
+        *terminou = 1;
+        return l; /*retorna a lista original*/
+     }
+
+
+    if (ant == NULL) /*vai remover o primeiro elemento*/
+      l = ptaux->prox;
+    else /*vai remover do meio ou do final*/
+      ant->prox = ptaux->prox;
+
+    free(ptaux); /*libera a memória alocada*/
+
+    return l;
+}
+
+ptLSE* destroi(ptLSE* l)
+{
+   ptLSE *ptaux; //ponteiro auxiliar para percorrer a lista
+   while (l != NULL)
+   {
+         ptaux = l;
+         l = l->prox;
+         free(ptaux);
+   }
+   free(l);
+   return NULL;
+}
+
+
 // Inicializa listas vazias no map
 void inicializarLista(ptLSE *hash_map[], int M){
     for(int i = 0; i < M; i++){
@@ -229,10 +279,12 @@ void inicializarLista(ptLSE *hash_map[], int M){
 }
 
 int gerarHash(char estado[]){
+    char buffer[strlen(estado)];
+    strcpy(buffer,estado);
     for(int i = 0; i < 6; i++){
-        estado[i] = estado[i+1];
+        buffer[i] = buffer[i+1];
     }
-    return atoi(estado);
+    return atoi(buffer);
 }
 
 void procurarMap(int hash, ptLSE *map[], char simbolo, char novoEstado[]){
@@ -269,32 +321,95 @@ void imprime(ptLSE* l)
 }
 
 
-void remocaoEstadosInalcancaveis(ptLSE *map[],char estados[][8],char* estadoInicial){
+void remocaoEstadosInalcancaveis(ptLSE *map[],char (*estados)[8], char estadoFinal[][8],char* estadoInicial,int *qntEstados, int *qntEstadosFinais){
     ptLSE *listaAlcancavel;
-    listaAlcancavel = criaLista(listaAlcancavel);
 
+    listaAlcancavel = criaLista(listaAlcancavel);
+    //insere o estado inicial na lista (simbolo é irrelevante)
     listaAlcancavel = inserirFim(listaAlcancavel,"aa",estadoInicial);
-    imprime(listaAlcancavel);
-    printf("--------------\n");
+
     achaEstadosAlcancaveis(map[gerarHash(estadoInicial)],listaAlcancavel,map);
 
-    imprime(listaAlcancavel);
+    atualizaLista(estados,estadoFinal,qntEstados,qntEstadosFinais,listaAlcancavel,map);
+
 
 }
 
+//percorre a lista de transição no map a partir do estado inicial e adiciona os estados alcançaveis na lista
 void achaEstadosAlcancaveis(ptLSE *estado,ptLSE *listaAlcancavel,ptLSE *map[]){
     if(estado != NULL){
         if(!estaNaLista(listaAlcancavel,estado->estado)){
-            printf("Estado %s\n",estado->estado);
+            //insere o estado na lista de estados alcancaveis
             listaAlcancavel = inserirFim(listaAlcancavel,estado->simbolo,estado->estado);
-            achaEstadosAlcancaveis(estado->prox,listaAlcancavel,map);
+
+
+
             if(estado->prox != NULL){
-                int hash = gerarHash(estado->prox->estado);
-                printf("hash: %d\n",hash);
+                //chama a funcao para o prox elemento da lista
+                achaEstadosAlcancaveis(estado->prox,listaAlcancavel,map);
+
+                //chama a funcao na lista de transicao do prox estado
+                int hash = gerarHash(estado->estado);
                 achaEstadosAlcancaveis(map[hash],listaAlcancavel,map);
             }
 
         }
+        //chama a funcao para o prox elemento da lista
         achaEstadosAlcancaveis(estado->prox,listaAlcancavel,map);
     }
+}
+
+//recebe a lista de estados, a lista de estados alcançaveis e o map, e remove os estados inalcancaveis;
+void atualizaLista(char (*estados)[8],char estadoFinal[][8], int *qntEstados,int *qntEstadosFinais ,ptLSE *listaAlcancaveis, ptLSE *map[]){
+    int i,j,k;
+
+    for(i=0;i<*qntEstados;i++){
+        if(!estaNaLista(listaAlcancaveis,estados[i])){
+            int eFinal = 0;
+            int hash = gerarHash(estados[i]);
+
+            //apaga a lista de transicao do estado no map
+            destroi(map[hash]);
+
+            //remove os nodos que referenciam o estado a ser excluido na lista de transição dos outros estados,
+            //ACHO QUE VIAJEI E NAO PRECISA DISSO AQUI MAS FICA DE REFERENCIA PROS ESTADOS INUTEIS Q AI ISSO É UTIL (EU ACHO)
+            for(j = 0;j < *qntEstados;j++){
+                int terminou = 0;
+                int hash_percorre_map = gerarHash(estados[j]);
+                ptLSE *ptEstado = map[hash_percorre_map];
+                while(!terminou)
+                    ptEstado = remover(ptEstado,estados[i],&terminou);
+            }
+
+
+            //procura e remove o estado da lista de estados finais
+            for(j=0;j< (*qntEstadosFinais);j++){
+                if(!strcmp(estadoFinal[j],estados[i])){
+                    for(k = j ; k<(*qntEstadosFinais) ;k++){
+                        if(k<NUM_MAX_ESTADOS_FINAIS){
+                            strcpy(estadoFinal[k],estadoFinal[k+1]);
+                            eFinal=1;
+                        }
+                    }
+                }
+            }
+
+
+            //remove o estado da lista de estados
+            for(j=i;j<*qntEstados;j++){
+                    if(j<NUM_MAX_ESTADOS){
+                        strcpy(estados[j],estados[j+1]);
+                    }
+
+            }
+
+            //atualiza os contadores
+            (*qntEstados)--;
+            if(eFinal)
+                (*qntEstadosFinais)--;
+
+
+        }
+    }
+
 }
