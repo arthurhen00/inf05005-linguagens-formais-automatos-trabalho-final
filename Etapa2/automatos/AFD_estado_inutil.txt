@@ -1,0 +1,9 @@
+AFD-est-inuti
+S:q0,q1,q2,q3
+A:c,b
+i:q0
+F:q2
+
+(q0,c,q1)
+(q1,c,q2)
+(q1,b,q3)

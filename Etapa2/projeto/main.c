@@ -25,6 +25,9 @@ ptLSE* destroi(ptLSE* l);
 void remocaoEstadosInalcancaveis(ptLSE *map[],char estados[][8], char estadoFinal[][8],char* estadoInicial,int *qntEstados, int *qntEstadosFinais);
 void achaEstadosAlcancaveis(ptLSE *estado,ptLSE *listaAlcancavel,ptLSE *map[]);
 void atualizaLista(char estados[][8],char estadoFinal[][8], int *qntEstados,int *qntEstadosFinais ,ptLSE *listaAlcancaveis, ptLSE *map[]);
+void removeEstadosInuteis(char estados[][8],char estadoFinal[][8], int *qntEstados,int *qntEstadosFinais, ptLSE *map[]);
+void achaEstadosInuteis(char estados[][8],char estadoFinal[][8], int *qntEstados,int *qntEstadosFinais, ptLSE *listaUteis, ptLSE *map[]);
+int contaTamanhoLista(ptLSE *lista);
 
 
 ptLSE *criaLista();
@@ -47,11 +50,14 @@ int main(){
     ptLSE *hash_map[101];
     inicializarLista(hash_map, 101);
     lerAutomato(automato_nome, estados, alfabeto, estadoInicial, estadoFinal, hash_map,&qntEstados,&qntSimbolos,&qntEstadosFinais);
-    printf("%s\n\n\n",estadoInicial);
 
     processarListaPalavras("entrada.txt", hash_map, estadoInicial, estadoFinal);
 
+
+
     remocaoEstadosInalcancaveis(hash_map,estados,estadoFinal,estadoInicial,&qntEstados,&qntEstadosFinais);
+
+    removeEstadosInuteis(estados,estadoFinal,&qntEstados,&qntEstadosFinais, hash_map);
 
     return 0;
 }
@@ -60,7 +66,7 @@ void lerAutomato(char name[], char estados[][8], char alfabeto[][8], char estado
     char buffer[STRING_SIZE];
     char *token;
 
-    FILE *arq = fopen("../automatos/AFD _com_estado_inalcancavel.txt", "r");
+    FILE *arq = fopen("../automatos/AFD_inutil_inalcancavel.txt", "r");
         if(!arq){
             printf("Erro ao abrir arquivo do automato --- (caminho nao encontrado)");
             fclose(arq);
@@ -321,14 +327,16 @@ void imprime(ptLSE* l)
 }
 
 
-void remocaoEstadosInalcancaveis(ptLSE *map[],char (*estados)[8], char estadoFinal[][8],char* estadoInicial,int *qntEstados, int *qntEstadosFinais){
+void remocaoEstadosInalcancaveis(ptLSE *map[],char estados[][8], char estadoFinal[][8],char* estadoInicial,int *qntEstados, int *qntEstadosFinais){
     ptLSE *listaAlcancavel;
 
     listaAlcancavel = criaLista(listaAlcancavel);
+
     //insere o estado inicial na lista (simbolo é irrelevante)
-    listaAlcancavel = inserirFim(listaAlcancavel,"aa",estadoInicial);
+    listaAlcancavel = inserirFim(listaAlcancavel,"\0",estadoInicial);
 
     achaEstadosAlcancaveis(map[gerarHash(estadoInicial)],listaAlcancavel,map);
+
 
     atualizaLista(estados,estadoFinal,qntEstados,qntEstadosFinais,listaAlcancavel,map);
 
@@ -342,20 +350,19 @@ void achaEstadosAlcancaveis(ptLSE *estado,ptLSE *listaAlcancavel,ptLSE *map[]){
             //insere o estado na lista de estados alcancaveis
             listaAlcancavel = inserirFim(listaAlcancavel,estado->simbolo,estado->estado);
 
-
+            //chama a funcao na lista de transicao do prox estado
+            int hash = gerarHash(estado->estado);
+            achaEstadosAlcancaveis(map[hash],listaAlcancavel,map);
 
             if(estado->prox != NULL){
                 //chama a funcao para o prox elemento da lista
                 achaEstadosAlcancaveis(estado->prox,listaAlcancavel,map);
-
-                //chama a funcao na lista de transicao do prox estado
-                int hash = gerarHash(estado->estado);
-                achaEstadosAlcancaveis(map[hash],listaAlcancavel,map);
             }
 
         }
         //chama a funcao para o prox elemento da lista
         achaEstadosAlcancaveis(estado->prox,listaAlcancavel,map);
+
     }
 }
 
@@ -411,5 +418,54 @@ void atualizaLista(char (*estados)[8],char estadoFinal[][8], int *qntEstados,int
 
         }
     }
+}
 
+void removeEstadosInuteis(char estados[][8],char estadoFinal[][8], int *qntEstados,int *qntEstadosFinais, ptLSE *map[]){
+        ptLSE *listaUteis = criaLista();
+        int i,tamanhoIteracaoAnterior;
+
+        //Insere os estados finais na lista
+        for(i = 0;i < *qntEstadosFinais;i++){
+            listaUteis = inserirFim(listaUteis,"\0",estadoFinal[i]);
+        }
+
+        do{
+            tamanhoIteracaoAnterior = contaTamanhoLista(listaUteis);
+            achaEstadosInuteis(estados,estadoFinal,qntEstados,qntEstadosFinais,listaUteis,map);
+        }while(tamanhoIteracaoAnterior != contaTamanhoLista(listaUteis));
+
+        atualizaLista(estados,estadoFinal,qntEstados,qntEstadosFinais,listaUteis,map);
+
+}
+
+void achaEstadosInuteis(char estados[][8],char estadoFinal[][8], int *qntEstados,int *qntEstadosFinais, ptLSE *listaUteis, ptLSE *map[]){
+    int i=0,hash;
+    ptLSE *ptAux,*listaEstado;
+
+    for(i = 0; i < *qntEstados; i++){
+        hash = gerarHash(estados[i]);
+        //Acessa no map a lista do estado[i]
+        ptAux=map[hash];
+        //Percorre a lista do estado
+        while(ptAux!=NULL){
+            //Se achar algum estado que alcança um estado util adiciona o estado[i] na lista(se ele não estiver na lista)
+            if(estaNaLista(listaUteis,ptAux->estado) && !estaNaLista(listaUteis,estados[i]))
+                listaUteis=inserirFim(listaUteis,"\0",estados[i]);
+
+            //Atualiza ponteiro que percorre a lista
+            ptAux=ptAux->prox;
+        }
+    }
+}
+
+int contaTamanhoLista(ptLSE *lista){
+    int tamanho = 0;
+    ptLSE *ptAux=lista;
+
+    while(ptAux != NULL){
+        tamanho++;
+        ptAux = ptAux->prox;
+    }
+
+    return tamanho;
 }
