@@ -1,6 +1,6 @@
 AFD-est-inuti
 S:q0,q1,q2,q3,q4
-A:c,b
+A:c,b,d,e
 i:q0
 F:q3
 
