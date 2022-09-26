@@ -32,8 +32,8 @@ int contaTamanhoLista(ptLSE *lista);
 
 void criaTotal(ptLSE *map[], int *qntEstados, char estados[][8], char alfabeto[][8], int qntSimbolos);
 
-void juntaEstadosEquivalentes(int qntEstados, char estados[][8], char estadoFinal[][8], int qntEstadosFinais, ptLSE *map[], int qntSimbolos, int alfabeto[][8]);
-void dependencias(int i, int j, char estados[][8], ptLSE *map[], int qntSimbolos, int alfabeto[][8]);
+void juntaEstadosEquivalentes(int qntEstados, char estados[][8], char estadoFinal[][8], int qntEstadosFinais, ptLSE *map[], int qntSimbolos, char alfabeto[][8]);
+void dependencias(int i, int j, char estados[][8], ptLSE *map[], int qntSimbolos, char alfabeto[][8]);
 
 ptLSE *criaLista();
 ptLSE *inserirFim(ptLSE *ptLista, char simbolo[], char estado[]);
@@ -67,7 +67,7 @@ int main(){
         imprime(hash_map[gerarHash(estados[i])]);
     }
 
-    juntaEstadosEquivalentes(qntEstados, estados, estadoFinal, qntEstadosFinais, hash_map, qntSimbolos, alfabeto);
+    //juntaEstadosEquivalentes(qntEstados, estados, estadoFinal, qntEstadosFinais, hash_map, qntSimbolos, alfabeto);
 
     return 0;
 }
@@ -490,6 +490,7 @@ int contaTamanhoLista(ptLSE *lista){
 // func total
 void criaTotal(ptLSE *map[], int *qntEstados, char estados[][8], char alfabeto[][8], int qntSimbolos){
     // dump definido por padrao como: q99
+
     for(int i = 0; i < *qntEstados; i++){
 
         ptLSE *ptAux = map[gerarHash(estados[i])];
@@ -497,7 +498,7 @@ void criaTotal(ptLSE *map[], int *qntEstados, char estados[][8], char alfabeto[]
         
         // estado sem transicao
         if(ptAux == NULL){ 
-            //printf("%s -> ", estados[i]);
+            printf("%s -> ", estados[i]);
             for(int j = 0; j < qntSimbolos; j++){
                 // adiciona no dump
                 map[gerarHash(estados[i])] = inserirFim(map[gerarHash(estados[i])], alfabeto[j], "q99");
@@ -508,25 +509,22 @@ void criaTotal(ptLSE *map[], int *qntEstados, char estados[][8], char alfabeto[]
         }
 
         // estados com transicao
-        while(ptAux != NULL){
-            for(int j = 0; j < *qntEstados; j++){
-                if(!strcmp(ptAux->estado, estados[j])){
-                    for(int k = 0; k < qntSimbolos; k++){
-                        if(!strcmp(ptAux->simbolo, alfabeto[k])){
-                            // simbolo já está na lista
-                            //printf("[%s,%s] ", ptAux->simbolo, ptAux->estado);
-                        }else{
-                            // adiciona simbolo -> dump
-                            map[gerarHash(estados[i])] = inserirFim(map[gerarHash(estados[i])], alfabeto[k], "q99");
-                            //printf("[%s] ", alfabeto[k]);
-                        }
-                    }
+        for(int j = 0; j < qntSimbolos; j++){
+            int esta = 0;
+            while(ptAux != NULL){
+                if(!strcmp(ptAux->simbolo, alfabeto[j])){
+                    //printf("[%s,%s] ", ptAux->simbolo, ptAux->estado);
+                    esta = 1;
                 }
+                ptAux = ptAux->prox;
             }
-            ptAux = ptAux->prox;
+            if(esta == 0){
+                map[gerarHash(estados[i])] = inserirFim(map[gerarHash(estados[i])], alfabeto[j], "q99");
+            }
+            ptAux = map[gerarHash(estados[i])];
         }
 
-        printf("\n");
+        //printf("\n");
     }
     
     // loop no dump
@@ -539,7 +537,7 @@ void criaTotal(ptLSE *map[], int *qntEstados, char estados[][8], char alfabeto[]
 }
 
 //  Minimizacao
-void juntaEstadosEquivalentes(int qntEstados, char estados[][8], char estadoFinal[][8], int qntEstadosFinais, ptLSE *map[], int qntSimbolos, int alfabeto[][8]){
+void juntaEstadosEquivalentes(int qntEstados, char estados[][8], char estadoFinal[][8], int qntEstadosFinais, ptLSE *map[], int qntSimbolos, char alfabeto[][8]){
     // 1 -> x
     // 0 -> dependencia 
     // -1 n igual
@@ -595,7 +593,7 @@ void juntaEstadosEquivalentes(int qntEstados, char estados[][8], char estadoFina
     } 
 }
 
-void dependencias(int i, int j, char estados[][8], ptLSE *map[], int qntSimbolos, int alfabeto[][8]){
+void dependencias(int i, int j, char estados[][8], ptLSE *map[], int qntSimbolos, char alfabeto[][8]){
     ptLSE *ptAux1 = map[gerarHash(estados[i])];
     ptLSE *ptAux2 = map[gerarHash(estados[j])];
 
@@ -607,7 +605,7 @@ void dependencias(int i, int j, char estados[][8], ptLSE *map[], int qntSimbolos
                 ptAux2 = ptAux2->prox;
             }
             if(strcmp(ptAux1->estado, ptAux2->estado)){
-                print("%d");
+                printf("%d");
             }
         }
     
