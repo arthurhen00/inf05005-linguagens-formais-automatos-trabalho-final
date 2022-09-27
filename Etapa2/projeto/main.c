@@ -67,7 +67,7 @@ int main(){
         imprime(hash_map[gerarHash(estados[i])]);
     }
 
-    juntaEstadosEquivalentes(qntEstados, estados, estadoFinal, qntEstadosFinais, hash_map, qntSimbolos, alfabeto);
+    //juntaEstadosEquivalentes(qntEstados, estados, estadoFinal, qntEstadosFinais, hash_map, qntSimbolos, alfabeto);
 
     return 0;
 }
@@ -76,7 +76,7 @@ void lerAutomato(char name[], char estados[][8], char alfabeto[][8], char estado
     char buffer[STRING_SIZE];
     char *token;
 
-    FILE *arq = fopen("../automatos/AFD_inutil_inalcancavel.txt", "r");
+    FILE *arq = fopen("../automatos/AFD.txt", "r");
         if(!arq){
             printf("Erro ao abrir arquivo do automato --- (caminho nao encontrado)");
             fclose(arq);
@@ -501,7 +501,7 @@ void criaTotal(ptLSE *map[], int *qntEstados, char estados[][8], char alfabeto[]
             //printf("%s -> ", estados[i]);
             for(int j = 0; j < qntSimbolos; j++){
                 // adiciona no dump
-                map[gerarHash(estados[i])] = inserirFim(map[gerarHash(estados[i])], alfabeto[j], "q99");
+                //map[gerarHash(estados[i])] = inserirFim(map[gerarHash(estados[i])], alfabeto[j], "q99");
                 precisa_dump = 1;
                 //printf("[%s] ", alfabeto[j]);
             }
@@ -588,7 +588,7 @@ void juntaEstadosEquivalentes(int qntEstados, char estados[][8], char estadoFina
     
     printf("\n\n\n");
     int macete = 0;
-    while(macete < 1000){
+    //while(macete < 1000){
     // laço para marcar dependencias
     passada = 0;
     for(int j = 0; j < tamanhoMatriz ; j++){
@@ -618,7 +618,7 @@ void juntaEstadosEquivalentes(int qntEstados, char estados[][8], char estadoFina
         printf("\n");
     }
     macete++;
-    }
+    //}
 
     
 
