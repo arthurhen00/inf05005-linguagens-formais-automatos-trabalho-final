@@ -33,7 +33,7 @@ int contaTamanhoLista(ptLSE *lista);
 void criaTotal(ptLSE *map[], int *qntEstados, char estados[][8], char alfabeto[][8], int qntSimbolos);
 
 void juntaEstadosEquivalentes(int qntEstados, char estados[][8], char estadoFinal[][8], int qntEstadosFinais, ptLSE *map[], int qntSimbolos, char alfabeto[][8]);
-void dependencias(int i, int j, char estados[][8], ptLSE *map[], int qntSimbolos, char alfabeto[][8]);
+void dependencias(int i, int j, char estados[][8], ptLSE *map[], int qntSimbolos, char alfabeto[][8], int qntEstados, int matriz[][qntEstados - 1]);
 
 ptLSE *criaLista();
 ptLSE *inserirFim(ptLSE *ptLista, char simbolo[], char estado[]);
@@ -67,7 +67,7 @@ int main(){
         imprime(hash_map[gerarHash(estados[i])]);
     }
 
-    //juntaEstadosEquivalentes(qntEstados, estados, estadoFinal, qntEstadosFinais, hash_map, qntSimbolos, alfabeto);
+    juntaEstadosEquivalentes(qntEstados, estados, estadoFinal, qntEstadosFinais, hash_map, qntSimbolos, alfabeto);
 
     return 0;
 }
@@ -490,7 +490,7 @@ int contaTamanhoLista(ptLSE *lista){
 // func total
 void criaTotal(ptLSE *map[], int *qntEstados, char estados[][8], char alfabeto[][8], int qntSimbolos){
     // dump definido por padrao como: q99
-
+    int precisa_dump = 0;
     for(int i = 0; i < *qntEstados; i++){
 
         ptLSE *ptAux = map[gerarHash(estados[i])];
@@ -498,10 +498,11 @@ void criaTotal(ptLSE *map[], int *qntEstados, char estados[][8], char alfabeto[]
         
         // estado sem transicao
         if(ptAux == NULL){ 
-            printf("%s -> ", estados[i]);
+            //printf("%s -> ", estados[i]);
             for(int j = 0; j < qntSimbolos; j++){
                 // adiciona no dump
                 map[gerarHash(estados[i])] = inserirFim(map[gerarHash(estados[i])], alfabeto[j], "q99");
+                precisa_dump = 1;
                 //printf("[%s] ", alfabeto[j]);
             }
         } else {
@@ -520,6 +521,7 @@ void criaTotal(ptLSE *map[], int *qntEstados, char estados[][8], char alfabeto[]
             }
             if(esta == 0){
                 map[gerarHash(estados[i])] = inserirFim(map[gerarHash(estados[i])], alfabeto[j], "q99");
+                precisa_dump = 1;
             }
             ptAux = map[gerarHash(estados[i])];
         }
@@ -528,17 +530,18 @@ void criaTotal(ptLSE *map[], int *qntEstados, char estados[][8], char alfabeto[]
     }
     
     // loop no dump
-    for(int i = 0; i < qntSimbolos; i++){
-        map[99] = inserirFim(map[99], alfabeto[i], "q99");
+    if(precisa_dump == 1){
+        for(int i = 0; i < qntSimbolos; i++){
+            map[99] = inserirFim(map[99], alfabeto[i], "q99");
+        }
+        strcpy(estados[*qntEstados], "q99");
+        (*qntEstados)++;
     }
-    strcpy(estados[*qntEstados], "q99");
-    (*qntEstados)++;
-
 }
 
 //  Minimizacao
 void juntaEstadosEquivalentes(int qntEstados, char estados[][8], char estadoFinal[][8], int qntEstadosFinais, ptLSE *map[], int qntSimbolos, char alfabeto[][8]){
-    // 1 -> x
+    // -1 -> x
     // 0 -> dependencia 
     // -1 n igual
     // 0 igual
@@ -553,33 +556,68 @@ void juntaEstadosEquivalentes(int qntEstados, char estados[][8], char estadoFina
     }
 
     int passada = 0;
-    for(int j = 0; j < tamanhoMatriz ; j++){ 
+    for(int j = 0; j < tamanhoMatriz ; j++){
         for(int i = tamanhoMatriz; i > passada; i--){
-            //printf("[%s %s] %d %d\n",estados[i], estados[j], i, j);
+            printf("[%s %s] %d %d\n",estados[i], estados[j], i, j);
 
             for(int k = 0; k < qntEstadosFinais; k++){ // final com nao final
                 if(!strcmp(estados[i], estadoFinal[k])){
                     for(int l = 0; l < qntEstadosFinais; l++){
                         if(strcmp(estados[j], estadoFinal[l])){
-                            //printf("|%s %s|\n", estados[i], estados[j]);
-                            matriz[i-1][j] = 1;
+                            printf("|%s %s|\n", estados[i], estados[j]);
+                            matriz[i-1][j] = -1;
+                        }else{
+                            //printf("{%s %s}\n", estados[i], estados[j]);
+                            // dependencia
                         }
                     }
                 }else if(strcmp(estados[i], estadoFinal[k])){
                     if(!strcmp(estados[j], estadoFinal[k])){
-                        //printf("|%s %s|\n", estados[i], estados[j]);
-                        matriz[i-1][j] = 1;  
+                        printf("|%s %s|\n", estados[i], estados[j]);
+                        matriz[i-1][j] = -1;  
                     }else{
-                        printf("[%s %s]", estados[i], estados[j]);
-                        dependencias(i-1, j, estados, map, qntSimbolos, alfabeto);
+                        //printf("{%s %s}\n", estados[i], estados[j]);
+                        //dependencias(i-1, j, estados, map, qntSimbolos, alfabeto);
                     }
                 }
             }
-
         }
         passada++;
+        printf("\n");
+    }
+    
+    printf("\n\n\n");
+    int macete = 0;
+    while(macete < 1000){
+    // laço para marcar dependencias
+    passada = 0;
+    for(int j = 0; j < tamanhoMatriz ; j++){
+        for(int i = tamanhoMatriz; i > passada; i--){
+            printf("[[%s %s]] %d %d\n",estados[i], estados[j], i, j);
 
-        //printf("\n");
+            for(int k = 0; k < qntEstadosFinais; k++){ // final com nao final
+                if(!strcmp(estados[i], estadoFinal[k])){
+                    for(int l = 0; l < qntEstadosFinais; l++){
+                        if(!strcmp(estados[j], estadoFinal[l])){
+                            printf("{%s %s}\n", estados[i], estados[j]);
+                            // if eqvalentes já marca aqui
+                            // else dependencia
+                            dependencias(i, j, estados, map, qntSimbolos, alfabeto, qntEstados, matriz);
+                        }
+                    }
+                }else if(strcmp(estados[i], estadoFinal[k])){
+                    if(strcmp(estados[j], estadoFinal[k])){
+                        printf("{%s %s}\n", estados[i], estados[j]);
+                        // if eqvalentes já marca aqui
+                        dependencias(i, j, estados, map, qntSimbolos, alfabeto, qntEstados, matriz);
+                    }
+                }
+            }
+        }
+        passada++;
+        printf("\n");
+    }
+    macete++;
     }
 
     
@@ -587,26 +625,97 @@ void juntaEstadosEquivalentes(int qntEstados, char estados[][8], char estadoFina
     int passada1 = tamanhoMatriz;
     for(int j = tamanhoMatriz - 1; j >= 0; j--){
         for(int i = 0; i < passada1; i++){
-            printf("%d|", matriz[j][i]);
+            printf("%3d|", matriz[j][i]);
         }printf("\n");
         passada1--;
     } 
 }
 
-void dependencias(int i, int j, char estados[][8], ptLSE *map[], int qntSimbolos, char alfabeto[][8]){
+void dependencias(int i, int j, char estados[][8], ptLSE *map[], int qntSimbolos, char alfabeto[][8], int qntEstados, int matriz[][qntEstados - 1]){
     ptLSE *ptAux1 = map[gerarHash(estados[i])];
     ptLSE *ptAux2 = map[gerarHash(estados[j])];
+    int vet_aux[qntSimbolos];
 
         for(int i = 0; i < qntSimbolos; i++){
-            while(!strcmp(ptAux1->simbolo, alfabeto[i])){
+
+            while(strcmp(ptAux1->simbolo, alfabeto[i])){
                 ptAux1 = ptAux1->prox;
             }
-            while(!strcmp(ptAux2->simbolo, alfabeto[i])){
+            while(strcmp(ptAux2->simbolo, alfabeto[i])){
                 ptAux2 = ptAux2->prox;
             }
-            if(strcmp(ptAux1->estado, ptAux2->estado)){
-                printf("%d");
+            printf("(%s %s %s)\n\n", ptAux1->estado, ptAux2->estado, alfabeto[i]);
+            if(!strcmp(ptAux1->estado, ptAux2->estado)){
+                // Estados Iguais
+                //equivalentes
+                vet_aux[i] = 1;
+            }else{
+                // Estados diferentes
+                // olhar na matriz pra ver se esses estados tem X
+                // se estiverem -> vet_aux = -1
+                
+                // forma os indice da matriz dado um par (estado1, estado2) -> indice matriz[a-1][b]
+                int a,b;
+                for (a = 0; a < qntEstados; a++)
+                {
+                    if(!strcmp(estados[a], ptAux1->estado))
+                        break;
+                }
+                for (b = 0; b < qntEstados; b++)
+                {
+                    if(!strcmp(estados[b], ptAux2->estado))
+                        break;
+                } 
+                // ---------------------------------------------------------------------
+
+                printf("#%s %s %d %d#\n", estados[a-1], estados[b], a, b);
+                printf("# %d #\n", matriz[a-1][b]);
+                if(matriz[a-1][b] == -1){
+                    vet_aux[i] = -1;
+                }else{
+                    vet_aux[i] = 1;
+                }
+              
+            }
+            ptAux1 = map[gerarHash(estados[i])];
+            ptAux2 = map[gerarHash(estados[j])];
+            
+        }
+
+        int n_eq = 1;
+        for(int i = 0; i < qntSimbolos; i++){
+            if(vet_aux[i] == -1){
+                n_eq = 0;
             }
         }
+        if(n_eq == 0){
+            printf("\nnao eq\n");
+
+            int a, b;
+            for (a = 0; a < qntEstados; a++)
+            {
+                if(!strcmp(estados[a], estados[i]))
+                    break;
+            }
+            for (b = 0; b < qntEstados; b++)
+            {
+                if(!strcmp(estados[b], estados[j]))
+                    break;
+            }
+            printf("*%s %s#\n", estados[i], estados[j]);
+            printf("*%s %s %d %d#\n", estados[a-1], estados[b], a, b);
+            printf("* %d #\n", matriz[a-1][b]);
+            matriz[a-1][b] = -1;
+
+            return;
+        }
+        printf("\n*************************************************\n");
+        
+
+
+
+        // faz o msm laco de antes, mas vendo o vet_aux, se tiver algum -1 nele pode marcar X direto
+        // se nao tiver nada marcado com -1 no vet aux
+        // ir recursivamente para o primeiro estado com dependencia e refazer essa funcao
     
 }
