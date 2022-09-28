@@ -75,7 +75,7 @@ int main()
 
     minimizaAutomato(qntEstados, estados, estadoFinal, qntEstadosFinais, hash_map, qntSimbolos, alfabeto);
 
-    processarListaPalavras("entrada1.txt", hash_map, estadoInicial, estadoFinal, qntEstadosFinais);
+    processarListaPalavras("./entradas/entrada1.txt", hash_map, estadoInicial, estadoFinal, qntEstadosFinais);
 
     ehVazia(hash_map,estadoFinal,qntEstadosFinais,estadoInicial);
     return 0;
