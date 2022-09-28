@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define FILE_NAME_SIZE 64
-#define STRING_SIZE 256
+#define FILE_NAME_SIZE 256
+#define STRING_SIZE 64
 #define SIMBOLO_VAZIO '$'
 #define NUM_MAX_ESTADOS 32
 #define NUM_MAX_ESTADOS_FINAIS 16
@@ -17,7 +17,7 @@ struct tipoNo
 };
 
 void lerAutomato(char name[], char estados[][8], char alfabeto[][8], char estadoInicial[], char estadoFinal[][8], ptLSE *map[], int *qntEstados, int *qntSimbolos, int *qntEstadosFinais);
-void processarListaPalavras(char fileName[STRING_SIZE], ptLSE *map[], char estadoInicial[], char estadoFinal[][8], int qntEstadosFinais);
+void processarListaPalavras(char fileName[], ptLSE *map[], char estadoInicial[], char estadoFinal[][8], int qntEstadosFinais);
 void procurarMap(int hash, ptLSE *map[], char simbolo, char novoEstado[]);
 int estaNaLista(ptLSE *lista, char estado[]);
 ptLSE *remover(ptLSE *l, char estado[], int *terminou);
@@ -34,7 +34,8 @@ void criaTotal(ptLSE *map[], int *qntEstados, char estados[][8], char alfabeto[]
 void minimizaAutomato(int qntEstados, char estados[][8], char estadoFinal[][8], int qntEstadosFinais, ptLSE *map[], int qntSimbolos, char alfabeto[][8]);
 void dependencias(int p, int q, char estados[][8], ptLSE *map[], int qntSimbolos, char alfabeto[][8], int qntEstados, int matriz[][qntEstados - 1], int qntEstadosFinais, char estadoFinal[][8]);
 int comparaEstados(char estado1[], char estado2[], char estadoFinal[][8], int qntEstadosFinais);
-int EhFinal(char estado[], char estadoFinal[][8], int qntEstadosFinais);
+int ehFinal(char estado[], char estadoFinal[][8], int qntEstadosFinais);
+void ehVazia(ptLSE *map[],char estadoFinal[][8],int qntEstadosFinais,char estadoInicial[]);
 
 ptLSE *criaLista();
 ptLSE *inserirFim(ptLSE *ptLista, char simbolo[], char estado[]);
@@ -59,24 +60,45 @@ int main()
     ptLSE *hash_map[101];
     inicializarLista(hash_map, 101);
     lerAutomato(automato_nome, estados, alfabeto, estadoInicial, estadoFinal, hash_map, &qntEstados, &qntSimbolos, &qntEstadosFinais);
-    // processarListaPalavras("entrada.txt", hash_map, estadoInicial, estadoFinal, qntEstadosFinais);
+    
 
     remocaoEstadosInalcancaveis(hash_map, estados, estadoFinal, estadoInicial, &qntEstados, &qntEstadosFinais);
     removeEstadosInuteis(estados, estadoFinal, &qntEstados, &qntEstadosFinais, hash_map);
     criaTotal(hash_map, &qntEstados, estados, alfabeto, qntSimbolos);
 
-    for (int i = 0; i < qntEstados; i++)
+    //Imprime os estados e as transições dos mesmos
+    /* for (int i = 0; i < qntEstados; i++)
     {
         printf("%s\n", estados[i]);
         imprime(hash_map[gerarHash(estados[i])]);
-    }
-
-    // printf("q1 -> +%s %s | %s %s+\n", hash_map[1]->simbolo, hash_map[1]->estado, hash_map[1]->prox->simbolo, hash_map[1]->prox->estado);
+    } */
 
     minimizaAutomato(qntEstados, estados, estadoFinal, qntEstadosFinais, hash_map, qntSimbolos, alfabeto);
 
-    // printf("q1 -> +%s %s | %s %s+\n", hash_map[1]->simbolo, hash_map[1]->estado, hash_map[1]->prox->simbolo, hash_map[1]->prox->estado);
+    processarListaPalavras("entrada1.txt", hash_map, estadoInicial, estadoFinal, qntEstadosFinais);
+
+    ehVazia(hash_map,estadoFinal,qntEstadosFinais,estadoInicial);
     return 0;
+}
+
+void ehVazia(ptLSE *map[],char estadoFinal[][8],int qntEstadosFinais,char estadoInicial[]){
+    ptLSE *estadosAlcancaveis;
+    int vazia=1;
+
+    estadosAlcancaveis = criaLista();
+    estadosAlcancaveis = inserirFim(estadosAlcancaveis, "\0", estadoInicial);
+    achaEstadosAlcancaveis(map[gerarHash(estadoInicial)], estadosAlcancaveis, map);
+    for(int i=0; i<qntEstadosFinais;i++){
+        if(estaNaLista(estadosAlcancaveis, estadoFinal[i])){
+            vazia=0;
+        }
+    }
+
+    if(vazia){
+        printf("Nao ha estados alcancaveis a partir do estado inicial");
+    }else{
+        printf("Ha estados alcancaveis a partir do estado inicial");
+    }
 }
 
 void lerAutomato(char name[], char estados[][8], char alfabeto[][8], char estadoInicial[], char estadoFinal[][8], ptLSE *map[], int *qntEstados, int *qntSimbolos, int *qntEstadosFinais)
@@ -84,7 +106,7 @@ void lerAutomato(char name[], char estados[][8], char alfabeto[][8], char estado
     char buffer[STRING_SIZE];
     char *token;
 
-    FILE *arq = fopen("../automatos/teste4.txt", "r");
+    FILE *arq = fopen("../automatos/teste.txt", "r");
     if (!arq)
     {
         printf("Erro ao abrir arquivo do automato --- (caminho nao encontrado)");
@@ -157,7 +179,7 @@ void lerAutomato(char name[], char estados[][8], char alfabeto[][8], char estado
         token = strtok(NULL, ",");
         strcpy(buffer_estado_destino, token);
 
-        printf("%s %s %s %d\n", buffer_estado_fonte, buffer_simbolo, buffer_estado_destino, i);
+        //printf("%s %s %s %d\n", buffer_estado_fonte, buffer_simbolo, buffer_estado_destino, i);
 
         int hash = gerarHash(buffer_estado_fonte);
         map[hash] = inserirFim(map[hash], buffer_simbolo, buffer_estado_destino);
@@ -168,7 +190,7 @@ void lerAutomato(char name[], char estados[][8], char alfabeto[][8], char estado
     fclose(arq);
 }
 
-void processarListaPalavras(char fileName[STRING_SIZE], ptLSE *map[], char estadoInicial[], char estadoFinal[][8], int qntEstadosFinais)
+void processarListaPalavras(char fileName[], ptLSE *map[], char estadoInicial[], char estadoFinal[][8], int qntEstadosFinais)
 {
 
     FILE *arq = fopen(fileName, "r");
@@ -382,13 +404,14 @@ void remocaoEstadosInalcancaveis(ptLSE *map[], char estados[][8], char estadoFin
 {
     ptLSE *listaAlcancavel;
 
-    listaAlcancavel = criaLista(listaAlcancavel);
+    listaAlcancavel = criaLista();
 
     // insere o estado inicial na lista (simbolo � irrelevante)
     listaAlcancavel = inserirFim(listaAlcancavel, "\0", estadoInicial);
 
     achaEstadosAlcancaveis(map[gerarHash(estadoInicial)], listaAlcancavel, map);
 
+    
     atualizaLista(estados, estadoFinal, qntEstados, qntEstadosFinais, listaAlcancavel, map);
 }
 
@@ -615,7 +638,7 @@ void minimizaAutomato(int qntEstados, char estados[][8], char estadoFinal[][8], 
                 matriz[i - 1][j] = -1;
             }
         }
-        printf("\n");
+        //printf("\n");
     }
 
     //printf("\n\n\n");
@@ -640,36 +663,20 @@ void minimizaAutomato(int qntEstados, char estados[][8], char estadoFinal[][8], 
         macete++;
     }
 
-    for (int j = tamanhoMatriz - 1; j >= 0; j--)
-    {
-        printf("%3d|", j);
-        for (int i = 0; i < j+1; i++)
-        {
-            printf("%3d|", matriz[j][i]);
-        }
-        printf("\n");
 
-    }
 
     for (int j = 0; j < tamanhoMatriz; j++)
     {
         for (int i = tamanhoMatriz; i > j; i--)
         {
-            printf("i: %d j: %d\n", i, j);
             if(matriz[i-1][j] != -1 )
             {
-                printf("[Junta: %s %s]\n", estados[i], estados[j]);
                 juntaEstados(estados[j],estados[i],map,estados,qntEstados);
             }
         }
     }
     
 
-    for (int i = 0; i < qntEstados; i++)
-    {
-        printf("%s\n", estados[i]);
-        imprime(map[gerarHash(estados[i])]);
-    }
 }
 void juntaEstados(char estado1[], char estado2[], ptLSE *map[],char estados[][8], int qntEstados)
 {
@@ -828,7 +835,7 @@ void dependencias(int p, int q, char estados[][8], ptLSE *map[], int qntSimbolos
     // ir recursivamente para o primeiro estado com dependencia e refazer essa funcao
 }
 
-int EhFinal(char estado[], char estadoFinal[][8], int qntEstadosFinais)
+int ehFinal(char estado[], char estadoFinal[][8], int qntEstadosFinais)
 {
     for (int i = 0; i < qntEstadosFinais; i++)
     {
@@ -845,9 +852,11 @@ int comparaEstados(char estado1[], char estado2[], char estadoFinal[][8], int qn
     // 1 -> igual
     // 0 -> dependencia
     // -1 n igual
-    if (EhFinal(estado1, estadoFinal, qntEstadosFinais))
+    if (ehFinal
+(estado1, estadoFinal, qntEstadosFinais))
     {
-        if (EhFinal(estado2, estadoFinal, qntEstadosFinais))
+        if (ehFinal
+    (estado2, estadoFinal, qntEstadosFinais))
         {
             return 0;
         }
@@ -858,7 +867,8 @@ int comparaEstados(char estado1[], char estado2[], char estadoFinal[][8], int qn
     }
     else
     {
-        if (EhFinal(estado2, estadoFinal, qntEstadosFinais))
+        if (ehFinal
+    (estado2, estadoFinal, qntEstadosFinais))
             return -1;
         else
             return 0;
