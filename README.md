@@ -1,6 +1,13 @@
-# formais-automatos-trabalho-final
+## formais-automatos-trabalho-final
 
-![GIF](https://steamuserimages-a.akamaihd.net/ugc/91599662182541993/3AB22BCC544FEF3BD13493F937CF507E04D62228/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false)
+### Arquivo de entrada:
+Não deve conter espaços.
 
-## Cenário:
-Sistema que retorna as possíveis rotas em um mapa.
+Após a última transição deve haver um CRLF. É importante ter uma última linha vazia no arquivo.
+
+### Funcionamento:
+Minimização de um AFD.
+
+Conjunto de ACEITA e REJEITA.
+
+AFD recebe L vazia?
