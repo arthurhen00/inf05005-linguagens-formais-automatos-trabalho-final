@@ -1,5 +1,13 @@
 ## formais-automatos-trabalho-final
 
+## Comandos para compilar:
+
+`gcc -c main.c estruturas.c automatos.c`
+
+`gcc -o exe main.o estruturas.o automatos.o`
+
+`./exe`
+
 ### Arquivo de entrada:
 Não deve conter espaços.
 
