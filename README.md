@@ -9,6 +9,15 @@
 `./exe`
 
 ### Arquivo de entrada:
+
+O simbolo '$' é para uso exclusivo do programa.
+
+O estado q99 é para uso exclusivo do programa.
+
+A nomeação dos estados deve ser do tipo q<número>, onde <número> é um valor entre 0 e 98.
+
+A quantidade máxima de estados deve ser 31.
+
 Não deve conter espaços.
 
 Após a última transição deve haver um CRLF. É importante ter uma última linha vazia no arquivo.
