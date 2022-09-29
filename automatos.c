@@ -2,14 +2,17 @@
 
 // Dado o nome de um arquivo que contem um AFD, faz a leitura dele
 // e o armazena em um hash map
-void lerAutomato(char name[], char estados[][8], char alfabeto[][8], char estadoInicial[], char estadoFinal[][8], ptLSE *map[], int *qntEstados, int *qntSimbolos, int *qntEstadosFinais){
+void lerAutomato(char arq_leitura[], char name[], char estados[][8], char alfabeto[][8], char estadoInicial[], char estadoFinal[][8], ptLSE *map[], int *qntEstados, int *qntSimbolos, int *qntEstadosFinais){
     char buffer[STRING_SIZE];
     char *token;
+    char dir[STRING_SIZE] = "./automatos/"; 
 
-    FILE *arq = fopen("./automatos/teste.txt", "r");
+    strcat(dir, arq_leitura);
+    FILE *arq = fopen(dir, "r");
     if (!arq){
-        printf("Erro ao abrir arquivo do automato --- (caminho nao encontrado)");
+        printf("Erro ao abrir arquivo do automato --- (caminho nao encontrado '%s')\n", dir);
         fclose(arq);
+        exit(3);
         return;
     }
     // Nome do automato
@@ -61,7 +64,11 @@ void lerAutomato(char name[], char estados[][8], char alfabeto[][8], char estado
         char buffer_simbolo[8];
         char buffer_estado_destino[8];
 
-        buffer[strlen(buffer) - 2] = '\0';
+        if(buffer[strlen(buffer) - 1] == '\n'){
+            buffer[strlen(buffer) - 2] = '\0';
+        }else{
+            buffer[strlen(buffer) - 1] = '\0';
+        }
 
         token = strtok(buffer, "(");
         token = strtok(token, ",");
@@ -85,10 +92,14 @@ void lerAutomato(char name[], char estados[][8], char alfabeto[][8], char estado
 // dado um arquivo com palavras, imprime aceita caso o automato no hash_map o aceita, rejeita caso contrario
 void processarListaPalavras(char fileName[], ptLSE *map[], char estadoInicial[], char estadoFinal[][8], int qntEstadosFinais){
 
-    FILE *arq = fopen(fileName, "r");
+    char dir[STRING_SIZE] = "./entradas/";
+
+    strcat(dir, fileName);
+    FILE *arq = fopen(dir, "r");
     if (!arq){
-        printf("Erro ao abrir arquivo de entrada --- (caminho nao encontrado)");
+        printf("Erro ao abrir arquivo de entrada --- (caminho nao encontrado '%s')\n", dir);
         fclose(arq);
+        exit(3);
         return;
     }
 
@@ -544,8 +555,21 @@ void ehVazia(ptLSE *map[],char estadoFinal[][8],int qntEstadosFinais,char estado
     }
 
     if(vazia){
-        printf("Nao ha estados alcancaveis a partir do estado inicial");
+        printf("Nao ha estados alcancaveis a partir do estado inicial (L eh vazia)\n\n");
     }else{
-        printf("Ha estados alcancaveis a partir do estado inicial");
+        printf("Ha estados alcancaveis a partir do estado inicial (L nao eh vazia)\n\n");
     }
 }
+
+// Gera um arquivo para o automato minimo
+void gerarArquivoAutomatoMinimo(ptLSE *map[], char alfabeto[][8], int qntSimbolos, char afd_name[]){
+    char dir[STRING_SIZE] = "./automatos/";
+
+    strcat(afd_name, "_minimo.txt");
+    strcat(dir, afd_name);
+    FILE *arq = fopen(dir, "w");
+    
+    fclose(arq);
+
+}
+    

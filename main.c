@@ -2,6 +2,8 @@
 
 int main(){
 
+    char arq_leitura[STRING_SIZE];
+
     char automato_nome[STRING_SIZE];
     char estados[NUM_MAX_ESTADOS][8];
     char alfabeto[NUM_MAX_ESTADOS][8];
@@ -10,9 +12,12 @@ int main(){
     int qntEstados = 0, qntSimbolos = 0, qntEstadosFinais = 0;
 
     ptLSE *hash_map[101];
-
     inicializarLista(hash_map, 101);
-    lerAutomato(automato_nome, estados, alfabeto, estadoInicial, estadoFinal, hash_map, &qntEstados, &qntSimbolos, &qntEstadosFinais);
+    
+    printf("\nInsira o nome do arquivo AFD: ");
+    fgets(arq_leitura, STRING_SIZE, stdin);
+    arq_leitura[strlen(arq_leitura) - 1] = '\0';
+    lerAutomato(arq_leitura, automato_nome, estados, alfabeto, estadoInicial, estadoFinal, hash_map, &qntEstados, &qntSimbolos, &qntEstadosFinais);
 
     remocaoEstadosInalcancaveis(hash_map, estados, estadoFinal, estadoInicial, &qntEstados, &qntEstadosFinais);
     removeEstadosInuteis(estados, estadoFinal, &qntEstados, &qntEstadosFinais, hash_map);
@@ -20,16 +25,17 @@ int main(){
 
     minimizaAutomato(qntEstados, estados, estadoFinal, qntEstadosFinais, hash_map, qntSimbolos, alfabeto);
 
-    processarListaPalavras("./entradas/entrada1.txt", hash_map, estadoInicial, estadoFinal, qntEstadosFinais);
-
+    printf("Insira o nome do arquivo Lista: ");
+    fgets(arq_leitura, STRING_SIZE, stdin);
+    arq_leitura[strlen(arq_leitura) - 1] = '\0';
+    printf("\n");
+    processarListaPalavras(arq_leitura, hash_map, estadoInicial, estadoFinal, qntEstadosFinais);
+    printf("\n");
     ehVazia(hash_map,estadoFinal,qntEstadosFinais,estadoInicial);
 
-    //Imprime os estados e as transições dos mesmos
-    /* for (int i = 0; i < qntEstados; i++)
-    {
-        printf("%s\n", estados[i]);
-        imprime(hash_map[gerarHash(estados[i])]);
-    } */
+    gerarArquivoAutomatoMinimo(hash_map,alfabeto, qntSimbolos, automato_nome);
 
     return 0;
 }
+
+//imprimeAutomato(hash_map, qntEstados, estados);

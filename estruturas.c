@@ -94,19 +94,6 @@ int estaNaLista(ptLSE *lista, char estado[])
     }
 }
 
-// DEBUG
-void imprime(ptLSE *l)
-{
-    ptLSE *ptaux;
-    if (l == NULL)
-        puts("lista vazia");
-    else
-        for (ptaux = l; ptaux != NULL; ptaux = ptaux->prox)
-            printf("Estado(lista) = (%s,%s)\n", ptaux->simbolo, ptaux->estado);
-
-    printf("\n");
-}
-
 // Hash Map ************************************************************************************************************************
 // Dado um estado no formato q<int> gera um hash para adicionalo no hash_map
 // Padrao: hash = <int>
@@ -140,4 +127,26 @@ int contaTamanhoLista(ptLSE *lista)
     }
 
     return tamanho;
+}
+
+// Debug ************************************************************************************************
+//Imprime os estados e as transições dos mesmos
+void imprime(ptLSE *l)
+{
+    ptLSE *ptaux;
+    if (l == NULL)
+        puts("lista vazia");
+    else
+        for (ptaux = l; ptaux != NULL; ptaux = ptaux->prox)
+            printf("Estado(lista) = (%s,%s)\n", ptaux->simbolo, ptaux->estado);
+
+    printf("\n");
+}
+
+//Imprime os estados e as transições dos mesmos
+void imprimeAutomato(ptLSE *map[], int qntEstados, char estados[][8]){
+    for (int i = 0; i < qntEstados; i++){
+        printf("%s\n", estados[i]);
+        imprime(map[gerarHash(estados[i])]);
+    }
 }
