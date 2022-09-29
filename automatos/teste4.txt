@@ -1,4 +1,4 @@
-AFD-minim
+AFD-teste4
 S:q0,q1,q2,q3,q4
 A:a,b
 i:q0

@@ -1,0 +1,12 @@
+AFD-teste3_minimo
+S:q0,q2,q99
+A:a,b
+i:q0
+F:q2
+
+(q0,b,q2)
+(q0,a,q0)
+(q2,a,q2)
+(q2,b,q99)
+(q99,a,q99)
+(q99,b,q99)

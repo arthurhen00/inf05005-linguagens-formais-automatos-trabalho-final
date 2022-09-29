@@ -33,9 +33,16 @@ int main(){
     printf("\n");
     ehVazia(hash_map,estadoFinal,qntEstadosFinais,estadoInicial);
 
-    gerarArquivoAutomatoMinimo(hash_map,alfabeto, qntSimbolos, automato_nome);
+    gerarArquivoAutomatoMinimo(hash_map,alfabeto, qntSimbolos, automato_nome, &qntEstados, &qntEstadosFinais, estados, estadoFinal, estadoInicial);
+
+    //for(int i = 0; i < qntEstados; i++){
+    //    printf("(%s)\n", estados[i]);
+    //}
+    //for(int i = 0; i < qntEstadosFinais; i++){
+    //    printf("[%s]\n", estadoFinal[i]);
+    //}imprimeAutomato(hash_map, qntEstados, estados);
 
     return 0;
 }
 
-//imprimeAutomato(hash_map, qntEstados, estados);
+//

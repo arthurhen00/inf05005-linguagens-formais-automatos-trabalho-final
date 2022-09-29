@@ -53,7 +53,7 @@ void ehVazia(ptLSE *map[],char estadoFinal[][8],int qntEstadosFinais,char estado
 
 void juntaEstados(char estado1[], char estado2[], ptLSE *map[],char estados[][8], int qntEstados);
 
-void gerarArquivoAutomatoMinimo(ptLSE *map[], char alfabeto[][8], int qntSimbolos, char afd_name[]);
+void gerarArquivoAutomatoMinimo(ptLSE *map[], char alfabeto[][8], int qntSimbolos, char afd_name[], int *qntEstados, int *qntEstadoFinal, char estados[][8], char estadoFinal[][8], char estadoInicial[]);
 
 // Prototipos *** Debug ***
 void imprime(ptLSE *l);

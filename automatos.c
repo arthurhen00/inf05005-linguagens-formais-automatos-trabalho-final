@@ -392,6 +392,19 @@ void minimizaAutomato(int qntEstados, char estados[][8], char estadoFinal[][8], 
             }
         }
     }
+
+    // DEBUG
+    //for (int j = tamanhoMatriz - 1; j >= 0; j--)
+    //{
+    //    for (int i = 0; i < j+1; i++)
+    //    {
+    //        printf("%3d|", matriz[j][i]);
+    //    }
+    //    printf("\n");
+ 
+    //}
+
+
 }
 
 // dado um par (estado1, estado2) olha na matriz se esse par é marcado com X, caso for, marca com X o estado que depende desse,
@@ -562,13 +575,106 @@ void ehVazia(ptLSE *map[],char estadoFinal[][8],int qntEstadosFinais,char estado
 }
 
 // Gera um arquivo para o automato minimo
-void gerarArquivoAutomatoMinimo(ptLSE *map[], char alfabeto[][8], int qntSimbolos, char afd_name[]){
+void gerarArquivoAutomatoMinimo(ptLSE *map[], char alfabeto[][8], int qntSimbolos, char afd_name[], int *qntEstados, int *qntEstadoFinal, char estados[][8], char estadoFinal[][8], char estadoInicial[]){
     char dir[STRING_SIZE] = "./automatos/";
+    char estados_remov[NUM_MAX_ESTADOS][8];
+    int qnt_remov = 0;
 
+    // coloca os estados que serao removidos em um vet aux
+    for(int i = 0; i < *qntEstados; i++){
+        if(map[gerarHash(estados[i])] == NULL){
+            strcpy(estados_remov[qnt_remov], estados[i]);
+            qnt_remov++;
+        }
+    }
+
+    // atualiza estadosFinais
+    char buffer0[NUM_MAX_ESTADOS][8];
+    int count0 = 0;
+    for(int i = 0; i < *qntEstadoFinal; i++){
+        int flag = 0;
+        for(int j = 0; j < qnt_remov; j++){
+            if(!strcmp(estadoFinal[i], estados_remov[j])){
+                flag = 1;
+            }
+        }
+        if(flag == 0){
+            strcpy(buffer0[count0], estadoFinal[i]);
+            count0++;
+        }
+    }
+    for(int i = 0; i < count0; i++){
+        strcpy(estadoFinal[i], buffer0[i]);
+    }
+    (*qntEstadoFinal) = count0;
+
+    // atualiza estados
+    char buffer[NUM_MAX_ESTADOS][8];
+    int count = 0;
+    for(int i = 0; i < *qntEstados; i++){
+        int flag = 0;
+        for(int j = 0; j < qnt_remov; j++){
+            if(!strcmp(estados[i], estados_remov[j])){
+                flag = 1;
+            }
+        }
+        if(flag == 0){
+            strcpy(buffer[count], estados[i]);
+            count++;
+        }
+    }
+    for(int i = 0; i < count; i++){
+        strcpy(estados[i], buffer[i]);
+    }
+    (*qntEstados) = count;
+
+    char name[STRING_SIZE];
+    strcpy(name, afd_name);
     strcat(afd_name, "_minimo.txt");
     strcat(dir, afd_name);
     FILE *arq = fopen(dir, "w");
     
+    fprintf(arq, "%s_minimo\n", name);
+    fprintf(arq, "%s", "S:");
+    for(int i = 0; i < *qntEstados; i++){
+        if(i < *qntEstados - 1){
+            fprintf(arq, "%s,", estados[i]);
+        }else{
+            fprintf(arq, "%s\n", estados[i]);
+        }
+    }
+    fprintf(arq, "%s", "A:");
+    for(int i = 0; i < qntSimbolos; i ++){
+        if(i < qntSimbolos - 1){
+            fprintf(arq, "%s,", alfabeto[i]);
+        }else{
+            fprintf(arq, "%s\n", alfabeto[i]);
+        }
+    }
+    fprintf(arq, "%s%s\n", "i:", estadoInicial);
+    fprintf(arq, "%s", "F:");
+    for(int i = 0; i < *qntEstadoFinal; i ++){
+        if(i < *qntEstadoFinal - 1){
+            fprintf(arq, "%s,", estadoFinal[i]);
+        }else{
+            fprintf(arq, "%s\n", estadoFinal[i]);
+        }
+    }
+    fprintf(arq, "%s", "\n");
+
+    for (int i = 0; i < *qntEstados; i++){
+        ptLSE *ptAux = map[gerarHash(estados[i])];
+        if (ptAux != NULL){
+            for (ptAux; ptAux != NULL; ptAux = ptAux->prox){
+                fprintf(arq, "(%s,", estados[i]);
+                fprintf(arq, "%s,", ptAux->simbolo);
+                fprintf(arq, "%s)", ptAux->estado);
+                fprintf(arq, "%s", "\n");
+            }
+        }
+    }
+    
+
     fclose(arq);
 
 }
