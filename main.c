@@ -42,6 +42,8 @@ int main(){
     //    printf("[%s]\n", estadoFinal[i]);
     //}imprimeAutomato(hash_map, qntEstados, estados);
 
+    system("pause");
+
     return 0;
 }
 

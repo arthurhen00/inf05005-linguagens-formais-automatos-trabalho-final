@@ -1,0 +1,14 @@
+AFD-teste_minimo
+S:q0,q1,q2,q4
+A:a,b
+i:q0
+F:q0,q4
+
+(q0,b,q1)
+(q0,a,q2)
+(q1,a,q1)
+(q1,b,q0)
+(q2,a,q4)
+(q2,b,q4)
+(q4,a,q2)
+(q4,b,q2)
