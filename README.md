@@ -14,7 +14,7 @@ Arquivos contendo automatos devem ser colocados na pasta `automatos`.
 
 Arquivos contendo lista de palavras para processamento devem ser colocados na pasta `entradas`.
 
-O simbolo '$' é para uso exclusivo do programa.
+O simbolo '$' representa palavra vazia.
 
 O estado q99 é para uso exclusivo do programa.
 
