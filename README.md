@@ -28,11 +28,24 @@ Após a última transição deve haver um CRLF. É importante ter uma última li
 
 Ex: 
 
-![IMG](https://media.discordapp.net/attachments/1024803269043830986/1024803541300297728/unknown.png?width=468&height=670)
+![IMG](https://media.discordapp.net/attachments/1024803269043830986/1024803541300297728/unknown.png?width=350&height=500)
+
+### Arquivo de saída:
+
+O arquivo de saída será no formato `<nome afd>_minimo.txt`.
 
 ### Funcionamento:
-Minimização de um AFD.
 
-Conjunto de ACEITA e REJEITA.
+Input:
 
-AFD recebe L vazia?
+Nome do arquivo com o autômato.
+
+Nome do arquivo com as listas de palavras.
+
+Output:
+
+Arquivo de saída com o afd minimizado.
+
+Conjunto de ACEITA e REJEITA no terminal.
+
+AFD recebe L vazia? no terminal.
