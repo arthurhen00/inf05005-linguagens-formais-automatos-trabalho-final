@@ -25,6 +25,8 @@ int main(){
 
     minimizaAutomato(qntEstados, estados, estadoFinal, qntEstadosFinais, hash_map, qntSimbolos, alfabeto);
 
+    removeEstadosInuteis(estados, estadoFinal, &qntEstados, &qntEstadosFinais, hash_map);
+
     printf("Insira o nome do arquivo Lista: ");
     fgets(arq_leitura, STRING_SIZE, stdin);
     arq_leitura[strlen(arq_leitura) - 1] = '\0';
